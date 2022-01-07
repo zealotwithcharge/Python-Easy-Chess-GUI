@@ -39,7 +39,7 @@ If there are variations, the player can choose any of the variation moves.
 The computer will choose a random variation and play the move.
 When the opening line is finished, the tool will load another random opening.
 
-Please note that most of the other features of the Python-Easy-Chess library are either disabled or should not be used.
+Please note that most of the other features of the Python-Easy-Chess-GUI library are either disabled or should not be used.
 This project is still a work in progress.
 
 
