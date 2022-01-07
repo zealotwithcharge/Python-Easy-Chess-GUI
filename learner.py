@@ -1695,7 +1695,7 @@ class EasyChessGui:
         #Init PGN
         if move21 == None:
             parent_dir = os.path.split(os.getcwd())[0]
-            pgn_path = Path(parent_dir+'/gui/pgns')
+            pgn_path = Path(parent_dir+'/Python-Easy-Chess-GUI-master/pgns')
             pgns = os.listdir(pgn_path)
             pgns1 = []
             for file in pgns:
