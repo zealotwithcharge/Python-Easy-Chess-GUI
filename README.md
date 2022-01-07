@@ -13,25 +13,7 @@ If you want to run from the python source the following are required or see the 
 
 Or you can just download the [executable file](https://github.com/fsmosca/Python-Easy-Chess-GUI/releases) along with other files such as book and images.
 
-### B. Features
-#### 1. Save games to repertoire pgn files
-![](https://i.imgur.com/iXO2abq.png)
-
-#### 2. Install uci engine of your choice
-![](https://i.imgur.com/GErKZFy.png)
-
-#### 2.1 It is recommended to configure the engine setting after installation
-Configure engine via Engine->Manage->Edit, select engine and press modify.
-
-![](https://i.imgur.com/PmDzCvz.png)
-
-#### 3. Need book assistance? Right-click on BOOK 2 and press show
-![](https://i.imgur.com/SdgNdr6.png)
-
-#### 4. Need what engine adviser will think about the position? Right-click on Adviser and press start
-![](https://i.imgur.com/Jziws5W.png)
-
-### C. Installation
+### B. Installation
 1. If you want to run from the source code
 * Python Easy Chess GUI<br>
 Download the files including the Images, Engines and Book directories. You can use your favorite uci chess engine like stockfish by copying it into the engines dir.
@@ -48,13 +30,28 @@ https://github.com/asweigart/pyperclip<br>
 pip install pyperclip
 2. If you want to run from the exe
 * Download the exe file from the release link
+### C. Features
+
+This is an opening practice tool that lets you test yourself on different openings.
+In Play Mode, the tool will show the name of the loaded opening in the top-right corner.
+The tool waits until the correct move of the opening is played by the player.
+If there are variations, the player can choose any of the variation moves.
+The computer will choose a random variation and play the move.
+When the opening line is finished, the tool will load another random opening.
 
 ### D. How to
-#### To start the gui
-* Execute python_easy_chess_gui.py<br>
+
+#### To prepare openings to practice
+* Create PGN file of the opening to practice
+* Add "white_" or "black_" to the front of the PGN file name. (EX. "white_london.pgn")
+* Add all of the pgn files into the `/pgns` folder.
+* 
+#### To start the learner
+* Execute learner.py [--color=white]<br>
 Typical command line:<br>
-`python python_easy_chess_gui.py`
-* Execute the exe when using exe file
+`python learner.py --color white`
+`python learner.py --color black`
+
 
 #### To play as white
 * Mode->Play
@@ -67,47 +64,10 @@ Typical command line:<br>
 * Mode->Play
 * Engine->Go
 
-#### To paste a FEN
-* You should be in Play mode. If not, then Mode->Play
-* FEN->Paste
-* If you play as white, you can make your move
-* If you play as black, Engine->Go
-
 #### To flip board
 * If current mode is Neutral, Board->Flip
 * If current mode is Play, Mode->Neutral, then Board->Flip
 
-#### To set opponent engine book options
-* Book->Set Book, only available in Neutral mode. This book is used by your opponent engine. This book is named pecg_book.bin and is located in Book folder. You can build a polyglot book name it pecg_book.bin and replace the default.
-
-#### To Hide/Unhide engine search info
-* Right-click on Opponent Search Info label an press Show. This would only work on Play mode.
-
-#### To Hide/Unhide Book info
-* Right-click on BOOK 1 or BOOK 2 labels and press Show. This would only work on Play mode.
-
-#### To request Adviser search info
-* Right-click on Adviser and press start. This would only work on Play mode.
-
-#### To select opponent engine
-* Engine->Set Engine Opponent, available only in Neutral mode.
-
-#### To set time control of engine
-* Time->Engine
-
-#### To set time control of user
-* Time->User
-
-#### To install engine
-* Engine->Manage->Install  
-This is only accessible in Neutral mode. After the uci engine is installed, you have to Edit it to modify its options, etc. Only uci engines are supported so far.
-* Engine->Manage->Edit
-
-#### To Edit engine
-* Engine->Manage->Edit
-
-#### To delete engine from config file
-* Engine->Manage->Delete
 
 ### E. Credits
 * PySimpleGUI<br>
