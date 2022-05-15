@@ -1688,6 +1688,30 @@ class EasyChessGui:
         is_hide_book2 = True
         is_hide_search_info = True
 
+
+        window.FindElement('polyglot_book1_k').update(visible = False)
+        window.FindElement('polyglot_book2_k').update(visible = False)
+        window.FindElement('_gamestatus_').update(visible = False)
+        window.FindElement('_White_').update(visible = False)
+        window.FindElement('w_base_time_k').update(visible = False)
+        window.FindElement('w_elapse_k').update(visible = False)
+        window.FindElement('_Black_').update(visible = False)
+        window.FindElement('b_base_time_k').update(visible = False)
+        window.FindElement('b_elapse_k').update(visible = False)
+        window.FindElement('adviser_k').update(visible = False)
+        window.FindElement('advise_info_k').update(visible = False)
+        window.FindElement('search_info_all_k').update(visible = False)
+        window.FindElement('book1').update(visible = False)
+        window.FindElement('book2').update(visible = False)
+        window.FindElement('black').update(visible = False)
+        window.FindElement('search_info').update(visible = False)
+        window.FindElement('comment').update(visible = False)
+        window.FindElement('movelist').update(visible = False)
+        window.FindElement('_movelist_').set_size((52,5))
+        window.FindElement('comment_k').set_size((52,20))
+        window.FindElement('white').set_size((52,2))
+        
+
         # Init timer
         human_timer = self.define_timer(window)
         engine_timer = self.define_timer(window, 'engine')
@@ -1695,7 +1719,7 @@ class EasyChessGui:
         #Init PGN
         if move21 == None:
             parent_dir = os.path.split(os.getcwd())[0]
-            pgn_path = Path(parent_dir+'/Python-Easy-Chess-GUI-master/pgns')
+            pgn_path = Path(parent_dir+'/Python-Easy-Chess-GUI/pgns')
             pgns = os.listdir(pgn_path)
             pgns1 = []
             for file in pgns:
@@ -1706,20 +1730,32 @@ class EasyChessGui:
                 else:
                     if file.find('black') != -1:
                         pgns1.append(file)
-            print(pgns1)
-            choice = str(pgn_path)+'/'+random.choice(pgns1)
+            pgn_name = random.choice(pgns1)
+            choice = str(pgn_path)+'/'+pgn_name
             pgn = open(choice,'r',encoding ='UTF-8')
             practice = chess.pgn.read_game(pgn)
+            pgn_text = pgn.read()
             lister = practice.variations
             possible_moves = []
+            possible_moves_nodes = []
             for move in lister:
                 possible_moves.append(move.move)
+                possible_moves_nodes.append(move)
             next_move = practice.next()
             title = choice.split('/')[-1]
             window.FindElement('_gamestatus_').Update(
                         f'Mode     Play, {title}')
             pgn.close()
-
+         
+        window.FindElement('white').update(pgn_name)
+        json_path = Path(parent_dir+'/Python-Easy-Chess-GUI/jsons')
+        json_choice = pgn_name[:-3] + 'json'
+        if json_choice in os.listdir(json_path): 
+            with open(str(json_path)+'/'+json_choice,'r',encoding = 'utf-8') as jsons:
+                attempt_dict = json.load(jsons)
+                jsons.close()
+        else:
+            attempt_dict = {}
         # Game loop
         while not board.is_game_over(claim_draw=True):
             moved_piece = None
@@ -1817,7 +1853,7 @@ class EasyChessGui:
             # If side to move is human
             if is_human_stm:
                 move_state = 0
-
+                err_counter = 0
                 while True:
                     button, value = window.Read(timeout=100)
 
@@ -2104,24 +2140,29 @@ class EasyChessGui:
                             # Check if user move is legal
                             if user_move in board.legal_moves:
                                 
-                                print('aoeshuntaoehtnsuaotoshneuhsaoetsun')
                                 
                                 if move_cnt != 0:
                                     possible_moves = []
+                                    possible_moves_nodes = []
+                                    print("parent_var",next_move.parent.variations)
                                     for move in next_move.parent.variations:
                                         possible_moves.append(move.move)
+                                        possible_moves_nodes.append(move)
                                 print(possible_moves)
+                                for move in possible_moves_nodes:
+                                    print("break")
+                                    for var in move.variations:
+                                        print("pos_var",var.move)
                                 if user_move in possible_moves:
-                                    print('hell')
+                                    start_index = pgn_text[pgn_text.find(str(int((move.ply()+1)/2))+'. '+str(user_move)[2:]):].find('{')
+                                    end_index = pgn_text[pgn_text.find(str(int((move.ply()+1)/2))+'. '+str(user_move)[2:]):].find('}')
                                     if board.is_castling(user_move):
                                             self.update_rook(window, str(user_move))
-
                                     # Update board if e.p capture
                                     elif board.is_en_passant(user_move):
                                         self.update_ep(window, user_move, board.turn)
 
                                     # Empty the board from_square, applied to any types of move
-                                    print(move_from)
                                     self.psg_board[move_from[0]][move_from[1]] = BLANK
                                     
                                     # Update board to_square if move is a promotion
@@ -2152,7 +2193,8 @@ class EasyChessGui:
                                         self.game.variations[0], append=True, disabled=True)
 
                                     # Clear comment and engine search box
-                                    window.FindElement('comment_k').Update('')
+                                    #window.FindElement('comment_k').Update(pgn_text[pgn_text.find(str(int((move.ply()+1)/2))+'. '+str(user_move)[2:]):][start_index+1:end_index])
+                                    window.FindElement('comment_k').Update(possible_moves_nodes[possible_moves.index(user_move)].comment)
                                     window.Element('search_info_all_k').Update('')
 
                                     # Change the color of the "fr" and "to" board squares
@@ -2180,24 +2222,52 @@ class EasyChessGui:
 
                                     window.Element('advise_info_k').Update('')
                                     
-                                    if next_move.variations != []:
-                                        next_move = random.choice(next_move.variations)
+                                    if possible_moves_nodes[possible_moves.index(user_move)].variations != []:
+                                        for var in next_move.variations:
+                                            print("variations",var.move)
+
+                                        next_move = random.choice(possible_moves_nodes[possible_moves.index(user_move)].variations)
                                     else:
-                                        
+                                        played_move = possible_moves_nodes[possible_moves.index(user_move)]
+                                        climber = played_move
+                                        line_string = ''
+                                        while climber.parent != None:
+                                            line_string += str(climber.move.to_square)
+                                            line_string += str(climber.move.from_square)
+                                            climber = climber.parent
+                                        if line_string in attempt_dict.keys():
+                                            if attempt_dict[line_string] != 5:
+                                                attempt_dict[line_string] += 1
+                                            else:
+
+                                                ladder = played_move
+                                                trash_var = ladder
+                                                while len(ladder.variations) == 1:
+                                                    trash_var = ladder 
+                                                    ladder = ladder.parent
+                                                ladder.remove_variation(trash_var)
+
+                                        else:
+                                            attempt_dict[line_string] = 1
+                                        with open(str(json_path)+'/'+json_choice,'w+',encoding='utf-8') as output:
+                                            json.dump(attempt_dict,output)
+                                            output.close()
+
                                         is_user_wins = True
                                                                 #if user plays right move
                                 else:
-                                    # move_state = 0
-                                    # color = self.sq_dark_color \
-                                    #     if (move_from[0] + move_from[1]) % 2 else self.sq_light_color
+                                    err_counter += 1
+                                    window.FindElement('comment_k').Update(err_counter)
 
-                                    # # Restore the color of the fr square
-                                    # button_square.Update(button_color=('white', color))
-                                    continue
+                                    if err_counter == 5:
+                                        window.FindElement('comment_k').Update(possible_moves)
+                                        is_user_resigns = True
+                                        break;
+                                    else:
+                                        continue
                                 
                             # Else if move is illegal
                             else:
-                                print('what?')
                                 # move_state = 0
                                 # color = self.sq_dark_color \
                                 #     if (move_from[0] + move_from[1]) % 2 else self.sq_light_color
@@ -2217,9 +2287,13 @@ class EasyChessGui:
                 is_book_from_gui = True
 
  
+                window.FindElement('comment_k').Update(next_move.comment)
                 best_move = next_move.move
                 
                 next_move = next_move.next()
+                if next_move is None:
+                    is_user_wins = True
+                    break
                     
                 
                 # Update board with computer move
@@ -2297,7 +2371,6 @@ class EasyChessGui:
 
                 window.FindElement('_gamestatus_').Update(f'Mode     Play, {title}')
             
-        print('ehoaeuhtnaoheusatoe')
         
         # Auto-save game
         logging.info('Saving game automatically')
@@ -2430,7 +2503,7 @@ class EasyChessGui:
 
         board_controls = [
             [sg.Text('Mode     Neutral', size=(36, 1), font=('Consolas', 10), key='_gamestatus_')],
-            [sg.Text('White', size=(7, 1), font=('Consolas', 10)),
+            [sg.Text('White', size=(7, 1),key = 'white', font=('Consolas', 10)),
              sg.Text('Human', font=('Consolas', 10), key='_White_',
                      size=(24, 1), relief='sunken'),
              sg.Text('', font=('Consolas', 10), key='w_base_time_k',
@@ -2438,7 +2511,7 @@ class EasyChessGui:
              sg.Text('', font=('Consolas', 10), key='w_elapse_k', size=(7, 1),
                      relief='sunken')
              ],
-            [sg.Text('Black', size=(7, 1), font=('Consolas', 10)),
+            [sg.Text('Black', size=(7, 1),key ='black', font=('Consolas', 10)),
              sg.Text('Computer', font=('Consolas', 10), key='_Black_',
                      size=(24, 1), relief='sunken'),
              sg.Text('', font=('Consolas', 10), key='b_base_time_k',
@@ -2452,20 +2525,20 @@ class EasyChessGui:
              sg.Text('', font=('Consolas', 10), key='advise_info_k', relief='sunken',
                      size=(46,1))],
 
-            [sg.Text('Move list', size=(16, 1), font=('Consolas', 10))],
+            [sg.Text('Move list', size=(16, 1),key = 'movelist', font=('Consolas', 10))],
             [sg.Multiline('', do_not_clear=True, autoscroll=True, size=(52, 8),
                     font=('Consolas', 10), key='_movelist_', disabled=True)],
 
-            [sg.Text('Comment', size=(7, 1), font=('Consolas', 10))],
+            [sg.Text('Comment', size=(7, 1), key = 'comment',font=('Consolas', 10))],
             [sg.Multiline('', do_not_clear=True, autoscroll=True, size=(52, 3),
                     font=('Consolas', 10), key='comment_k')],
 
             [sg.Text('BOOK 1, Comp games', size=(26, 1),
-                     font=('Consolas', 10),
+                     font=('Consolas', 10),key = 'book1',
                      right_click_menu=['Right',
                          ['Show::right_book1_k', 'Hide::right_book1_k']]),
              sg.Text('BOOK 2, Human games',
-                     font=('Consolas', 10),
+                     font=('Consolas', 10), key = 'book2',
                      right_click_menu=['Right',
                          ['Show::right_book2_k', 'Hide::right_book2_k']])],
             [sg.Multiline('', do_not_clear=True, autoscroll=False, size=(23, 4),
@@ -2473,11 +2546,16 @@ class EasyChessGui:
              sg.Multiline('', do_not_clear=True, autoscroll=False, size=(25, 4),
                     font=('Consolas', 10), key='polyglot_book2_k', disabled=True)],
 
-            [sg.Text('Opponent Search Info', font=('Consolas', 10), size=(30, 1),
+            [sg.Text('Opponent Search Info',key = 'search_info', font=('Consolas', 10), size=(30, 1),
                      right_click_menu=['Right',
                          ['Show::right_search_info_k', 'Hide::right_search_info_k']])],
             [sg.Text('', key='search_info_all_k', size=(55, 1),
                      font=('Consolas', 10), relief='sunken')],
+            
+            
+
+            
+            
         ]
 
         board_tab = [[sg.Column(board_layout)]]
